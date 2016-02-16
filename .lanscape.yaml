@@ -1,0 +1,9 @@
+doc-warnings: yes
+text-warnings: yes
+strictness: veryhigh
+requirements:
+  - requirements.txt
+python-targets:
+  - 3
+pep8:
+  full: true
