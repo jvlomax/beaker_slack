@@ -2,7 +2,7 @@ import os
 import datetime
 from importlib import import_module
 from slackclient import SlackClient
-
+import time
 from plugins.base import Plugin
 import sys
 
@@ -35,6 +35,9 @@ class Bot:
                     if message.get("text") is None:
                         continue
                     if message["text"] == "" or message["text"] is None:
+                        continue
+                    if float(message["ts"]) < time.time():
+                        print("old message, ignoring")
                         continue
                     print(message)
                     try:
@@ -74,9 +77,10 @@ class Bot:
 
 if __name__ == "__main__":
 
-    try:
+    if len(sys.argv) > 1:
         token = sys.argv[1]
-    except IndexError:
+    else:
+        print("else")
         token = os.environ.get("SLACK_API_TOKEN")
     if token is not None:
         bot = Bot(token)

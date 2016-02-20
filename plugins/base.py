@@ -1,8 +1,13 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class Plugin(metaclass=ABCMeta):
-    commands = [""]
+
+    @property
+    @abstractmethod
+    def commands(self):
+        return []
+
 
 
     @abstractmethod
