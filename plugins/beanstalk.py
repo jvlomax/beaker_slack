@@ -28,7 +28,7 @@ class BeanstalkPlugin(Plugin):
                     return "No pending reviews"
                 lines = []
                 for review in reviews:
-                    review_url = "{}/{}/code_reviews/{}".format(url, "project-miner" if client else "project_mine_server", review["id"])
+                    review_url = "{}/{}/code_reviews/{}".format(url, "project-miner" if client else "project_miner_server", review["id"])
                     lines.append("*{}*: {} {}".format(review["requesting_user"].get("name", "unknown"),
                                                         review.get("description", "No description given"),
                                                         review_url))
