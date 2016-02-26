@@ -1,3 +1,6 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import requests
+
 import os
 import datetime
 from importlib import import_module
@@ -6,14 +9,63 @@ import time
 from plugins.base import Plugin
 import sys
 
+from config import url, user, client_repository_id, server_repository_id, token
+
 
 class Bot:
+    def post_client_reviews(self):
+        headers = {"User-Agent": "beaker bot", "Content-Type": "application/json"}
+        response = requests.get("{}/api/{}/code_reviews.json?state=pending".format(url, client_repository_id),
+                                auth=(user, token), headers=headers)
+        print(response)
+        print(dir(response))
+        if response.status_code == 200:
+            reviews = response.json().get("code_reviews", {})
+
+            lines = []
+            for review in reviews:
+                review_url = "{}/{}/code_reviews/{}".format(url, "project-miner", review["id"])
+                lines.append("*{}*: {} {}".format(review["requesting_user"].get("name", "unknown"),
+                                                    review.get("description", "No description given"),
+                                                    review_url))
+        if lines:
+            self.sc.api_call("chat.postMessage", channel="#client-code-review", text="Good morning. These are the current pending reviews:")
+            self.sc.api_call("chat.postMessage", channel="#client-code-review", text="\n".join(lines))
+        else:
+            self.sc.api_call("chat.postMessage", channel="#client-code-review", text="Good morning. There are no pending reviews")
+
+    def post_server_reviews(self):
+        headers = {"User-Agent": "beaker bot", "Content-Type": "application/json"}
+        response = requests.get("{}/api/{}/code_reviews.json?state=pending".format(url, server_repository_id),
+                                auth=(user, token), headers=headers)
+        print(response)
+        print(dir(response))
+        if response.status_code == 200:
+            reviews = response.json().get("code_reviews", {})
+
+            lines = []
+            for review in reviews:
+                review_url = "{}/{}/code_reviews/{}".format(url, "project_miner_server", review["id"])
+                lines.append("*{}*: {} {}".format(review["requesting_user"].get("name", "unknown"),
+                                                    review.get("description", "No description given"),
+                                                    review_url))
+        if lines:
+            self.sc.api_call("chat.postMessage", channel="#client-code-review", text="Good morning. These are the current pending reviews:")
+            self.sc.api_call("chat.postMessage", channel="#client-code-review", text="\n".join(lines))
+        else:
+            self.sc.api_call("chat.postMessage", channel="#client-code-review", text="Good morning. There are no pending reviews")
+
     def __init__(self, token, name="beaker"):
         self.token = token
         self.name = name
         self.plugins = []
 
         self.tag = "@"
+        self.sc = SlackClient(self.token)
+        self.scheduler = AsyncIOScheduler()
+        self.scheduler.add_job(self.post_client_reviews, "cron", day_of_week="mon-fri", hour=11)
+        self.scheduler.add_job(self.post_server_reviews, "cron", day_of_week="mon-fro", hour=11)
+        self.scheduler.start()
 
     def get_plugins(self):
         print(os.listdir("plugins"))
@@ -28,10 +80,10 @@ class Bot:
         pass
 
     def connect(self):
-        sc = SlackClient(self.token)
-        if sc.rtm_connect():
+
+        if self.sc.rtm_connect():
             while 1:
-                for message in sc.rtm_read():
+                for message in self.sc.rtm_read():
                     if message.get("text") is None:
                         continue
                     if message["text"] == "" or message["text"] is None:
@@ -53,7 +105,7 @@ class Bot:
                                     data = module.message_recieved(command, " ".join(split[1:]))
                                     if isinstance(data, str):
                                         data = {"text": data}
-                                    sc.api_call("chat.postMessage", channel=message["channel"], **data)
+                                    self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
                                     break
                             else:
                                 data = {}
@@ -62,13 +114,13 @@ class Bot:
                                 elif command == "say":
                                     data["text"] = " ".join(split[1:])
                                 elif command == "summon":
-                                    sc.api_call("chat.delete", channel=message["channel"], ts=message["ts"])
+                                    self.sc.api_call("chat.delete", channel=message["channel"], ts=message["ts"])
                                     data["text"] = "@" + " @".join(split[1:])
                                     data["username"] = "summoner"
                                     data["image"] = "http://seriousmovielover.com/wordpress/wp-content/uploads/2009/10/python2.jpg"
                                     data["as_user"] = False
                                 if data != {}:
-                                    sc.api_call("chat.postMessage", channel=message["channel"], **data)
+                                    self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
 
     def run(self):
         self.get_plugins()
