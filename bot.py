@@ -1,4 +1,4 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 
 import os
@@ -9,14 +9,15 @@ import time
 from plugins.base import Plugin
 import sys
 
-from config import url, user, client_repository_id, server_repository_id, token
+from config import url, user, client_repository_id, server_repository_id
+from config import token as beanstalk_token
 
 
 class Bot:
     def post_client_reviews(self):
         headers = {"User-Agent": "beaker bot", "Content-Type": "application/json"}
         response = requests.get("{}/api/{}/code_reviews.json?state=pending".format(url, client_repository_id),
-                                auth=(user, token), headers=headers)
+                                auth=(user, beanstalk_token), headers=headers)
         print(response)
         print(dir(response))
         if response.status_code == 200:
@@ -26,8 +27,8 @@ class Bot:
             for review in reviews:
                 review_url = "{}/{}/code_reviews/{}".format(url, "project-miner", review["id"])
                 lines.append("*{}*: {} {}".format(review["requesting_user"].get("name", "unknown"),
-                                                    review.get("description", "No description given"),
-                                                    review_url))
+                                                  review.get("description", "No description given"),
+                                                  review_url))
         if lines:
             self.sc.api_call("chat.postMessage", channel="#client-code-review", text="Good morning. These are the current pending reviews:")
             self.sc.api_call("chat.postMessage", channel="#client-code-review", text="\n".join(lines))
@@ -37,7 +38,7 @@ class Bot:
     def post_server_reviews(self):
         headers = {"User-Agent": "beaker bot", "Content-Type": "application/json"}
         response = requests.get("{}/api/{}/code_reviews.json?state=pending".format(url, server_repository_id),
-                                auth=(user, token), headers=headers)
+                                auth=(user, beanstalk_token), headers=headers)
         print(response)
         print(dir(response))
         if response.status_code == 200:
@@ -47,8 +48,8 @@ class Bot:
             for review in reviews:
                 review_url = "{}/{}/code_reviews/{}".format(url, "project_miner_server", review["id"])
                 lines.append("*{}*: {} {}".format(review["requesting_user"].get("name", "unknown"),
-                                                    review.get("description", "No description given"),
-                                                    review_url))
+                                                  review.get("description", "No description given"),
+                                                  review_url))
         if lines:
             self.sc.api_call("chat.postMessage", channel="#client-code-review", text="Good morning. These are the current pending reviews:")
             self.sc.api_call("chat.postMessage", channel="#client-code-review", text="\n".join(lines))
@@ -62,7 +63,7 @@ class Bot:
 
         self.tag = "@"
         self.sc = SlackClient(self.token)
-        self.scheduler = AsyncIOScheduler()
+        self.scheduler = BackgroundScheduler()
         self.scheduler.add_job(self.post_client_reviews, "cron", day_of_week="mon-fri", hour=11)
         self.scheduler.add_job(self.post_server_reviews, "cron", day_of_week="mon-fro", hour=11)
         self.scheduler.start()

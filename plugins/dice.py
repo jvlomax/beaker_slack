@@ -8,8 +8,8 @@ class Dice(Plugin):
     def message_recieved(self, command, message):
         num_dice, eyes = message.split("d")
         total = 0
-        for x in range(0, int(eyes)):
+        for x in range(0, int(num_dice)):
             total += randint(1, int(eyes))
 
-        return total
+        return str(total)
 
