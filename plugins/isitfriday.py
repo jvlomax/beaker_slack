@@ -8,7 +8,7 @@ class IsItFriday(Plugin):
         data = {}
         if date.isoweekday(date.today()) == 5:
             data["username"] = "Rebecca Black"
-            data["image"] = "http://www.johnstonefitness.com/wp-content/uploads/2011/04/Rebecca-Black-Wallpapers.png"
+            data["icon_url"] = "http://www.johnstonefitness.com/wp-content/uploads/2011/04/Rebecca-Black-Wallpapers.png"
             data["text"] = "Yes it is friday. We so excited"
 
         else:

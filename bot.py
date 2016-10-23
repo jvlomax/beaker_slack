@@ -18,10 +18,7 @@ class Bot:
 
         self.tag = "@"
         self.sc = SlackClient(self.token)
-        self.scheduler = BackgroundScheduler()
-        self.scheduler.add_job(self.post_client_reviews, "cron", day_of_week="mon-fri", hour=11)
-        self.scheduler.add_job(self.post_server_reviews, "cron", day_of_week="mon-fri", hour=11)
-        self.scheduler.start()
+        
 
     def get_plugins(self):
         print(os.listdir("plugins"))
@@ -44,16 +41,21 @@ class Bot:
                         continue
                     if message["text"] == "" or message["text"] is None:
                         continue
-                    if float(message["ts"]) < time.time():
-                        print("old message, ignoring")
-                        continue
+                    #if float(message["ts"]) < time.time():
+                    #    print("old message, ignoring")
+                    #    continue
                     print(message)
                     try:
                         split = message["text"].split(" ")
                     except KeyError:
                         pass
                     else:
-                        if split[0][0] == self.tag:
+                       is_ok = True
+                       try:
+                           x = split[0][0]
+                       except IndexError:
+                           is_ok = False
+                       if is_ok and split[0][0] == self.tag:
 
                             command = split[0][1:]
                             for module in self.plugins:
@@ -73,7 +75,7 @@ class Bot:
                                     self.sc.api_call("chat.delete", channel=message["channel"], ts=message["ts"])
                                     data["text"] = "@" + " @".join(split[1:])
                                     data["username"] = "summoner"
-                                    data["image"] = "http://seriousmovielover.com/wordpress/wp-content/uploads/2009/10/python2.jpg"
+                                    data["icon_url"] = "http://seriousmovielover.com/wordpress/wp-content/uploads/2009/10/python2.jpg"
                                     data["as_user"] = False
                                 if data != {}:
                                     self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
