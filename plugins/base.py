@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-
 class Plugin(metaclass=ABCMeta):
 
     @property
@@ -13,3 +12,6 @@ class Plugin(metaclass=ABCMeta):
     @abstractmethod
     def message_recieved(self, command, message):
         pass
+
+    def help(self):
+        return "This module has not implemented a help method"
