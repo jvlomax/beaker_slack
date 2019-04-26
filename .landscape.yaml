@@ -1,6 +1,7 @@
 doc-warnings: yes
 text-warnings: yes
 strictness: medium
+max-line-length: 160
 requirements:
   - requirements.txt
 python-targets:

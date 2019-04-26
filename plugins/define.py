@@ -37,7 +37,11 @@ class Define(Plugin):
             if message.upper() in self.definitions:
                 item = self.definitions[message.upper()]
                 if isinstance(item, list):
-                    return "Found {} entries for {}:\n* {}".format(len(self.definitions[message.upper()]), message, "\n* ".join(item for item in self.definitions[message.upper()]))
+                    return "Found {} entries for {}:\n* {}".format(
+                        len(self.definitions[message.upper()]),
+                        message,
+                        "\n* ".join(item for item in self.definitions[message.upper()])
+                    )
                 else:
                     return self.definitions[message.upper()]
             else:
