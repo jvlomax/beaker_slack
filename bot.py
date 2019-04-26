@@ -18,9 +18,9 @@ class Bot:
         self.plugins = []
         self.module_objects = []
         self.tag = "@"
+        self.verbose = verbose
         self.sc = SlackClient(self.token)
         self.get_plugins()
-        self.verbose = verbose
 
     def get_plugins(self, reload_modules=False):
         modules = [file for file in os.listdir("plugins") if file.endswith(".py")
