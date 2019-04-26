@@ -5,7 +5,7 @@ from datetime import date
 class IsItFriday(Plugin):
     commands = ["isitfriday"]
 
-    def message_recieved(self, command, message=""):
+    def message_recieved(self, command, message=""): # pylint:disable=unused-argument
         data = {}
         if date.isoweekday(date.today()) == 5:
             data["username"] = "Rebecca Black"

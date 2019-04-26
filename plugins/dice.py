@@ -6,7 +6,7 @@ import re
 class Dice(Plugin):
     commands = ["roll"]
 
-    def message_recieved(self, command, message=""):
+    def message_recieved(self, command, message=""): # pylint:disable=unused-argument
         if message is None or message == "":
             return "Please enter a dnd style dice notiation, eg. 2d6"
         if not re.match(r"\d{,4}[D,d]\d{,4}$", message):

@@ -24,7 +24,7 @@ class Define(Plugin):
                 print("error parsing json file")
         atexit.register(self.write_definitions)
 
-    def message_recieved(self, command, message=""):
+    def message_recieved(self, command, message=""): # pylint:disable=unused-argument
         if message == "help":
             return self.help()
 

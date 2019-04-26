@@ -10,7 +10,7 @@ class Lunch(Plugin):
     commands = ["lunch"]
     context = {}
 
-    def message_recieved(self, command, message=""):
+    def message_recieved(self, command, message=""):  # pylint:disable=unused-argument
         if message == "review":
             return self.get_review()
         if not message:
