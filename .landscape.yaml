@@ -1,6 +1,6 @@
 doc-warnings: yes
 text-warnings: yes
-strictness: veryhigh
+strictness: medium
 requirements:
   - requirements.txt
 python-targets:
