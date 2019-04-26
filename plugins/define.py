@@ -2,7 +2,8 @@ from plugins.base import Plugin
 import os
 import json
 import atexit
-#from json import JSONDecodeError
+
+
 class Define(Plugin):
     commands = ["define"]
 
@@ -11,7 +12,7 @@ class Define(Plugin):
         if not os.path.exists(os.path.join("plugins", "define")):
             os.makedirs(os.path.join("plugins", "define"))
 
-        if not os.path.exists(os.path.join("plugins", "define","definitions.json")):
+        if not os.path.exists(os.path.join("plugins", "define", "definitions.json")):
             mode = "w+"
         else:
             mode = "r"
@@ -35,7 +36,7 @@ class Define(Plugin):
 
             if message.upper() in self.definitions:
                 item = self.definitions[message.upper()]
-                if(isinstance(item, list)):
+                if isinstance(item, list):
                     return "Found {} entries for {}:\n* {}".format(len(self.definitions[message.upper()]), message, "\n* ".join(item for item in self.definitions[message.upper()]))
                 else:
                     return self.definitions[message.upper()]
@@ -78,5 +79,5 @@ class Define(Plugin):
 
     def help(self):
         return "* You can look up a definition by just entering the name eg. @define YHR\n" \
-        "* You can add an entry by entering after the name, seperating with hyphen. eg. @define YHR - Yellow Hook Reef\n" \
-        "* You can clear entries by using the clear command, eg. @define clear YHR"
+               "* You can add an entry by entering after the name, seperating with hyphen. eg. @define YHR - Yellow Hook Reef\n" \
+               "* You can clear entries by using the clear command, eg. @define clear YHR"

@@ -5,9 +5,11 @@ import random
 TOKEN = os.environ.get("GOOGLE_PLACES_API_TOKEN")
 TOKEN = "AIzaSyAhKR8nzhZ_Rwh3yZ15iw5cu1ep13cgspM"
 
+
 class Lunch(Plugin):
     commands = ["lunch"]
     context = {}
+
     def message_recieved(self, command, message=""):
         if message == "review":
             return self.get_review()

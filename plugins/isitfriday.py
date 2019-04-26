@@ -1,6 +1,7 @@
 from plugins.base import Plugin
 from datetime import date
 
+
 class IsItFriday(Plugin):
     commands = ["isitfriday"]
 
@@ -14,4 +15,3 @@ class IsItFriday(Plugin):
         else:
             data["text"] = "No, it is not friday"
         return data
-
