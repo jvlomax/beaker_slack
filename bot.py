@@ -1,9 +1,15 @@
 #! /usr/bin/python3
 import argparse
+import atexit
+import binascii
 import datetime
+import hashlib
+import json
+from collections import defaultdict
 from importlib import import_module, reload, invalidate_caches
 import os
 import sys
+from json import JSONDecodeError
 
 from slackclient import SlackClient
 
@@ -19,8 +25,23 @@ class Bot:
         self.module_objects = []
         self.tag = "@"
         self.verbose = verbose
-        self.sc = SlackClient(self.token)
+        self.admins = defaultdict(dict)
+        try:
+            self.sc = SlackClient(self.token)
+        except Exception as e:
+            print(e)
+            sys.exit()
         self.get_plugins()
+        self.read_admins()
+        print(self.sc.api_call("bots.info", bot="beaker_bot"))
+        atexit.register(self.save_admins)
+
+    def read_admins(self):
+        try:
+            with open("admins.json", "r") as fp:
+                self.admins = json.load(fp)
+        except (JSONDecodeError, FileNotFoundError):
+            pass
 
     def get_plugins(self, reload_modules=False):
         modules = [file for file in os.listdir("plugins") if file.endswith(".py")
@@ -65,6 +86,8 @@ class Bot:
             if command in plugin.commands:
                 data = plugin.message_recieved(plugin, params)
                 return data
+        else:
+            return {"text": "Could not find a plugin for command {}".format(command)}
 
     def show_commands(self):
         commands = []
@@ -87,7 +110,7 @@ class Bot:
             print(message)
 
         # The first character for the first word should be our call tag. If not us, return
-        if message[0] != self.tag:
+        if message["text"][0] != self.tag:
             return
         # Split message into individual words
         split = message["text"].split(" ")
@@ -115,16 +138,51 @@ class Bot:
         elif command == "refresh":
             self.get_plugins(True)
             data["text"] = "successfully refreshed plugins"
+        elif command == "register":
+            self.register(message["user"], params)
         # Not found in internal commands, look for plugin to call
         else:
             data = self.call_plugin(command, params)
-
         if isinstance(data, str):
             data = {"text": data}
         data.setdefault("name", self.name)
         data.setdefault("as_user", True)
         if data:
             self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
+
+    def register(self, user, params):
+        password = params
+        if user in self.admins:
+            print(self.admins)
+            if self.verify_password(self.admins[user]["password"], password):
+                print("user verified")
+            else:
+                print("incorrect password")
+        else:
+            self.admins[user]["password"] = self.hash_password(password)
+            self.admins[user]["authed"] = True
+            print("created new user with password {}".format(self.admins[user]["password"]))
+        print(self.admins)
+    def hash_password(self, password):
+        """Hash a password for storing."""
+        salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
+        pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'),
+                                      salt, 100000)
+        pwdhash = binascii.hexlify(pwdhash)
+        return (salt + pwdhash).decode('ascii')
+
+    def verify_password(self, stored_password, provided_password):
+        """Verify a stored password against one provided by user"""
+        salt = stored_password[:64]
+        print(stored_password)
+        stored_password = stored_password[64:]
+        pwdhash = hashlib.pbkdf2_hmac('sha512',
+                                      provided_password.encode('utf-8'),
+                                      salt.encode('ascii'),
+                                      100000)
+        pwdhash = binascii.hexlify(pwdhash).decode('ascii')
+        return pwdhash == stored_password
+
 
     def connect(self):
         if self.sc.rtm_connect(auto_reconnect=True):
@@ -135,11 +193,18 @@ class Bot:
     def run(self):
         self.connect()
 
+    def save_admins(self):
+        for user in self.admins.keys():
+            self.admins[user]["authed"] = False
+        with open("admins.json", "w") as fp:
+            json.dump(self.admins, fp)
+
+
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Beaker Bot for slack")
-    parser.add_argument("-v", "--verbose", help="Print verbose messages")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print verbose messages")
     parser.add_argument("--name", help="The name to use for the bot", default="Beaker")
     parser.add_argument("--token", help="slack token to use for slack slackclient")
     args = parser.parse_args()

@@ -85,3 +85,6 @@ class Define(Plugin):
         return "* You can look up a definition by just entering the name eg. @define YHR\n" \
                "* You can add an entry by entering after the name, seperating with hyphen. eg. @define YHR - Yellow Hook Reef\n" \
                "* You can clear entries by using the clear command, eg. @define clear YHR"
+
+    def __str__(self):
+        return "Plugin for word definitions"

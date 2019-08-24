@@ -8,3 +8,6 @@ class Dadjoke(Plugin):
     def message_recieved(self, command, message=""): # pylint:disable=unused-argument
         response = requests.get("https://icanhazdadjoke.com/", headers={"Accept": "text/plain"})
         return response.text
+
+    def __str__(self):
+        return "Dadjoke generator"

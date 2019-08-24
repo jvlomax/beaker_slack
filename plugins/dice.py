@@ -27,3 +27,6 @@ class Dice(Plugin):
 
     def help(self):
         return "_n_d_y_. Roll _n_ dices each with _y_ eyes"
+
+    def __str__(self):
+        return "dice roller"
