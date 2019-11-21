@@ -163,6 +163,7 @@ class Bot:
             self.admins[user]["authed"] = True
             print("created new user with password {}".format(self.admins[user]["password"]))
         print(self.admins)
+
     def hash_password(self, password):
         """Hash a password for storing."""
         salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
@@ -183,113 +184,11 @@ class Bot:
         pwdhash = binascii.hexlify(pwdhash).decode('ascii')
         return pwdhash == stored_password
 
-
     def connect(self):
         if self.sc.rtm_connect(auto_reconnect=True):
             while 1:
                 for message in self.sc.rtm_read():
-
-                    if message.get("user", "") == "U2MQJU56V" or message.get("bot_id", "") == "B2MQ86EK0":
-                        continue
-                    if message.get("text") is None:
-                        continue
-                    if message["text"] == "" or message["text"] is None:
-                        continue
-                    #if float(message["ts"]) < time.time():
-                    #    print("old message, ignoring")
-                    #    continue
-                    print(message)
-                    try:
-                        split = message["text"].split(" ")
-                    except KeyError:
-                        pass
-                    else:
-                       is_ok = True
-                       try:
-                           x = split[0][0]
-                       except IndexError:
-                           is_ok = False
-                       if is_ok and split[0][0] == self.tag:
-                            command = split[0][1:]
-                            params = " ".join(split[1:])
-                            if command == "help":
-                                if params:
-                                    for module in self.plugins:
-                                        if params in module.commands:
-                                            data = module.help()
-                                            if isinstance(data, str):
-                                                data = {"text": data}
-                                            self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
-                                            break
-                                    # Module not found
-                                    else:
-                                        data = {"text": "could not find module {}".format(params)}
-                                        self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
-                                        break
-                                # No params, general beaker help
-                                else:
-                                    data = {"text": "Beaker bot help. You're on your own for now, Ain't nobody got time for writing help"}
-                                    self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
-                            # Find the correct module to call
-                            for module in self.plugins:
-                                if command in module.commands:
-                                    print(dir(module))
-                                    data = module.message_recieved(command, " ".join(split[1:]) or "")
-                                    # If plugins returns string, we need to make it into dictionary
-                                    if isinstance(data, str):
-                                        data = {"text": data}
-                                    # Add default data if not already defined by the plugin
-                                    if "name" not in data:
-                                        data["name"] = self.name
-                                    if "as_user" not in data:
-                                        data["as_user"] = True
-                                    """
-                                    if "icon_url" not in data:
-                                        data["icon_url"] = ""
-                                    """
-                                    self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
-                                    break
-                            else:
-                                data = {}
-                                if command == "whatdayisit":
-                                    data["text"] = datetime.datetime.now().strftime('%A')
-                                elif command == "say":
-                                    data["text"] = " ".join(split[1:])
-                                elif command == "summon":
-                                    self.sc.api_call("chat.delete", channel=message["channel"], ts=message["ts"])
-                                    data["text"] = "@" + " @".join(split[1:])
-                                    data["username"] = "summoner"
-                                    data["icon_url"] = "http://seriousmovielover.com/wordpress/wp-content/uploads/2009/10/python2.jpg"
-                                    data["as_user"] = False
-                                elif command == "commands":
-                                    available_commands = ""
-                                    commands = []
-                                    for module in self.plugins:
-                                        commands.extend([c for c in module.commands])
-                                        available_commands += "{}, ".format(" ,".join(module.commands))
-                                    commands.extend(["help", "say", "whatdayisit"])
-                                    help_message = "Available commands: {}".format(", ".join(sorted(commands))) if len(available_commands) > 0 else "No commands available"
-                                    data["text"] = help_message
-                                elif command == "refresh":
-                                    self.get_plugins(True)
-                                    data["text"] = "successfully refreshed plugins"
-                                elif command == "cb" or command == "beaker":
-                                    try:
-                                        print("Cleverbot")
-                                        data["text"] = self.cb.say(" ".join(split[1:])) or "No response"
-                                        print("data recieved: {}".format(data))
-                                    except cleverbot.CleverbotError as error:
-                                        print("cleverbot error {}".format(error))
-                                        data["text"] = "Error connecting to clevebot: {}".format(error)
-                                if data != {}:
-                                    if "name" not in data:
-                                        data["name"] = self.name
-                                    if "as_user" not in data:
-                                        data["as_user"] = True
-                                    self.sc.api_call("chat.postMessage", channel=message["channel"], **data)
-
                     self.handle_message(message)
-
 
     def run(self):
         self.connect()
