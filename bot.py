@@ -134,7 +134,7 @@ class Bot:
                                 elif command == "refresh":
                                     self.get_plugins(True)
                                     data["text"] = "successfully refreshed plugins"
-                                elif command == "cb":
+                                elif command == "cb" or command == "beaker":
                                     try:
                                         print("Cleverbot")
                                         data["text"] = self.cb.say(" ".join(split[1:])) or "No response"
