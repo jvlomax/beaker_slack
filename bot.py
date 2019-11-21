@@ -33,7 +33,6 @@ class Bot:
             sys.exit()
         self.get_plugins()
         self.read_admins()
-        print(self.sc.api_call("bots.info", bot="beaker_bot"))
         atexit.register(self.save_admins)
 
     def read_admins(self):
@@ -44,9 +43,7 @@ class Bot:
             pass
 
     def get_plugins(self, reload_modules=False):
-        modules = [file for file in os.listdir("plugins") if file.endswith(".py")
-                   and file != "base.py"
-                   and not file.startswith("__")]
+        modules = [file for file in os.listdir("plugins") if file.endswith(".py") and file != "base.py" and not file.startswith("__")]
         if not reload_modules:
             for module in modules:
                 self.module_objects.append(import_module("plugins." + module.split(".")[0]))
@@ -198,7 +195,6 @@ class Bot:
             self.admins[user]["authed"] = False
         with open("admins.json", "w") as fp:
             json.dump(self.admins, fp)
-
 
 
 if __name__ == "__main__":
