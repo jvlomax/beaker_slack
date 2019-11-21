@@ -1,4 +1,5 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
+
 
 class Plugin(metaclass=ABCMeta):
 
@@ -6,8 +7,6 @@ class Plugin(metaclass=ABCMeta):
     @abstractmethod
     def commands(self):
         return []
-
-
 
     @abstractmethod
     def message_recieved(self, command, message):
