@@ -7,7 +7,7 @@ from plugins.base import Plugin
 
 
 class CandidateCountdown(Plugin):
-    commands = ["countdown"]
+    commands = ["countdown", "candidates"]
     DATADOG_API_KEY = os.environ.get("DATADOG_API_KEY", None)
     DATADOG_APPLICATION_KEY = os.environ.get("DATADOG_APPLICATION_KEY", None)
     CRON = "00 12 * * *"
@@ -25,10 +25,17 @@ class CandidateCountdown(Plugin):
             query="postgresql.custom.player_count{*}by{eu-postgres-red}"
         )['series'][0]['pointlist'][-1][1]
         remaining_number_of_players = 1000000 - current_num_candidates
+        data = {
+            "as_user": False,
+            "icon_url": "https://www.dropbox.com/s/tut0r7yomg1f2ok/as-logo.png?dl=1",
+            "username": "CountdownBot"
+        }
         if remaining_number_of_players >= 0:
-            return "We are currently {} candidates away from 1 Million".format(int(remaining_number_of_players))
+            data["text"] = "We are currently {} candidates away from 1 Million".format(int(remaining_number_of_players))
+
         else:
-            return ":tada: Congratulation, you have reach 1 Million candidates :tada:"
+            data["text"] =  ":tada: Congratulation, you have reach 1 Million candidates :tada:"
+        return data
 
     @classmethod
     def cron(cls):
