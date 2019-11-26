@@ -11,7 +11,9 @@ import os
 import sys
 from json import JSONDecodeError
 
+from apscheduler.triggers.cron import CronTrigger
 from slackclient import SlackClient
+from apscheduler.schedulers.background import BackgroundScheduler
 
 import plugins.base
 
@@ -23,15 +25,18 @@ class Bot:
         self.name = name
         self.plugins = []
         self.module_objects = []
+        self.cron_plugins = []
         self.tag = "@"
         self.verbose = verbose
         self.admins = defaultdict(dict)
+        self.scheduler = BackgroundScheduler()
         try:
             self.sc = SlackClient(self.token)
         except Exception as e:
             print(e)
             sys.exit()
         self.get_plugins()
+        self.setup_cron_jobs()
         self.read_admins()
         atexit.register(self.save_admins)
 
@@ -61,11 +66,20 @@ class Bot:
         if self.verbose:
             print(plugins.base.Plugin.__subclasses__())
         for subclass in plugins.base.Plugin.__subclasses__():
+            _klass = subclass()
+            self.plugins.append(_klass)
+            if hasattr(_klass, "CRON"):
+                self.cron_plugins.append(_klass)
 
-            self.plugins.append(subclass())
         if self.verbose:
             print("module objects: {}".format(self.module_objects))
             print("plugins: {}".format(self.plugins))
+            print("Cron plugins: {}".format(self.cron_plugins))
+
+    def setup_cron_jobs(self):
+        self.scheduler.start()
+        for plugin in self.cron_plugins:
+            self.scheduler.add_job(plugin.cron, CronTrigger.from_crontab(plugin.CRON), jitter=60 * 10)
 
     def help(self, params):
         # No params, general beaker help
