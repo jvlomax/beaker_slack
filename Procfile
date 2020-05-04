@@ -1,1 +1,1 @@
-web: python bot.py --verbose
+worker: python bot.py --verbose
