@@ -4,7 +4,7 @@ import re
 
 
 class Dice(Plugin):
-    commands = ["roll"]
+    commands = ["roll", "dice"]
 
     def message_recieved(self, command, message=""): # pylint:disable=unused-argument
         if message is None or message == "":
