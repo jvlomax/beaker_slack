@@ -19,7 +19,7 @@ class Define(Plugin):
         # Only one token in message, get definition
         if not message:
             items = self.get_all_keys()
-            return "The following definitions exist:\n* {}".format("\n* ".join([item.capitalize() for item in items]))
+            return "The following definitions exist:\n* {}".format("\n* ".join([item for item in items]))
         if len(message.split(" - ")) == 1:
             if message.split(" ")[0] == "clear":
                 if self.clear_definitions(" ".join(message.split(" ")[1:])):
@@ -50,18 +50,16 @@ class Define(Plugin):
     def write_definition(self, key, definition):
         with self.con.cursor() as cursor:
             data = [definition]
-            print(key)
-            cursor.execute("SELECT definitions FROM definitions WHERE key=%s;", (key.upper(), ))
+            cursor.execute("SELECT definitions FROM definitions WHERE key ILIKE %s;", (key, ))
             existing_data = cursor.fetchone()
             if existing_data:
                 
                 existing_data = json.loads(existing_data[0])
                 print(existing_data)
                 data += existing_data
-                print(data)
-                cursor.execute("UPDATE definitions SET definitions=%s WHERE key=%s;", (json.dumps(data), key.upper()))
+                cursor.execute("UPDATE definitions SET definitions=%s WHERE key ILIKE %s;", (json.dumps(data), key))
             else:     
-                cursor.execute("INSERT INTO definitions (key, definitions) VALUES (%s, %s);", (key.upper(), json.dumps(data)))
+                cursor.execute("INSERT INTO definitions (key, definitions) VALUES (%s, %s);", (key, json.dumps(data)))
             self.con.commit()
     
     def get_all_keys(self):
@@ -74,20 +72,18 @@ class Define(Plugin):
         return keys
     def get_definitions(self, key):
         with self.con.cursor() as cursor:
-            cursor.execute("SELECT definitions FROM definitions WHERE key=%s;", (key.upper(), ))
+            cursor.execute("SELECT definitions FROM definitions WHERE key ILIKE %s;", (key, ))
             res = []
             rows = cursor.fetchall()
-            print(rows)
             for row in rows:
-                print(row)
                 res += json.loads(row[0])
-            print(res)
 
             return res
+
     def clear_definitions(self, key):
         with self.con.cursor() as cursor:
             try:
-                cursor.execute("DELETE FROM definitions WHERE key=%s;", (key.upper(), ))
+                cursor.execute("DELETE FROM definitions WHERE key ILIKE %s;", (key, ))
                 self.con.commit()
                 return cursor.rowcount
             except Exception:
