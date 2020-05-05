@@ -27,6 +27,7 @@ class Bot:
         self.module_objects = []
         self.cron_plugins = []
         self.tag = "@"
+        self.user_id = None
         self.verbose = verbose
         self.admins = defaultdict(dict)
         self.scheduler = BackgroundScheduler()
@@ -61,7 +62,6 @@ class Bot:
             self.module_objects.clear()
             self.module_objects = new_modules
             self.plugins.clear()
-
             invalidate_caches()
         if self.verbose:
             print(plugins.base.Plugin.__subclasses__())
@@ -105,15 +105,14 @@ class Bot:
         for module in self.plugins:
             commands.extend([c for c in module.commands])
         # TODO: These internal commands should be defined on the class object
-        commands.extend(["help", "say", "whatdayisit"])
+        commands.extend(["help", "say", "whatdayisit", "refresh"])
         help_message = "Available commands: {}".format(", ".join(sorted(commands))) \
             if commands else "No commands available"
         return {"text": help_message}
 
     def handle_message(self, message):
         # Ignore messages from the bot itself
-        # TODO: find a better way of storing the bot id and username
-        if message.get("user", "") == "U2MQJU56V" or message.get("bot_id", "") == "B2MQ86EK0":
+        if message.get("user", "") == self.user_id:
             return
         if not message.get("text"):
             return
@@ -197,6 +196,7 @@ class Bot:
 
     def connect(self):
         if self.sc.rtm_connect(auto_reconnect=True):
+            self.user_id = self.sc.server.login_data["self"]["id"]
             while 1:
                 for message in self.sc.rtm_read():
                     self.handle_message(message)
