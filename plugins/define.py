@@ -27,7 +27,7 @@ class Define(Plugin):
                 else:
                     return "Could not clear {}".format(" ".join(message.split(" ")[1:]))
 
-            items = self.get_definitions(message.upper())
+            items = self.get_definitions(message)
             print(items)
             if len(items) > 1:
                 return "Found {} entries for {}:\n* {}".format(
@@ -36,7 +36,7 @@ class Define(Plugin):
                     "\n* ".join([item for item in items])
                 )
             else:
-                return items[0]
+                return "No definition found for {}".format(message)
 
         elif len(message.split(" - ")) > 1:
             # create definition
