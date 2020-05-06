@@ -5,7 +5,7 @@ import psycopg2
 
 
 class Define(Plugin):
-    commands = ["define"]
+    commands = ["define", "whatis"]
 
     def __init__(self):
         database_url = os.environ.get("DATABASE_URL")
